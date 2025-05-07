@@ -1,12 +1,14 @@
-from flask import Flask, render_template, request, redirect, session
+from flask import Flask, render_template, request, redirect, session, send_file
 import sqlite3
 import os
+import pandas as pd  # For Excel support
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
 
 DATABASE = 'calls.db'
 
+# Initialize the database and tables
 def init_db():
     if not os.path.exists(DATABASE):
         conn = sqlite3.connect(DATABASE)
@@ -103,6 +105,24 @@ def adminpanel():
     conn.close()
     return render_template('report.html', reports=reports)
 
+@app.route('/export_excel')
+def export_excel():
+    if 'user_id' not in session or session.get('is_admin') != 1:
+        return redirect('/')
+    conn = sqlite3.connect(DATABASE)
+    c = conn.cursor()
+    c.execute('''
+        SELECT u.username, c.student, c.status, c.notes, c.call_date
+        FROM calls c JOIN users u ON c.user_id = u.id
+        ORDER BY c.call_date DESC
+    ''')
+    data = c.fetchall()
+    conn.close()
+    df = pd.DataFrame(data, columns=["Faculty", "Student", "Status", "Notes", "Date"])
+    file_path = 'faculty_call_reports.xlsx'
+    df.to_excel(file_path, index=False)
+    return send_file(file_path, as_attachment=True)
+
 @app.route('/logout')
 def logout():
     session.clear()
@@ -111,6 +131,7 @@ def logout():
 if __name__ == '__main__':
     init_db()
     app.run(debug=True)
+
 
 
 

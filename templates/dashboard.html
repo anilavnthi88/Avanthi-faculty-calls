@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Faculty Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <header>
+        <h2>Welcome, {{ username }}</h2>
+    </header>
+    <div class="container">
+        <form method="POST">
+            <label for="student">Student:</label>
+            <input type="text" name="student" required><br>
+            <label for="status">Status:</label>
+            <input type="text" name="status" required><br>
+            <label for="notes">Notes:</label>
+            <input type="text" name="notes" required><br>
+            <label for="call_date">Call Date:</label>
+            <input type="date" name="call_date" required><br>
+            <input type="submit" value="Submit Call Report">
+        </form>
+        <h3>Your Call Reports</h3>
+        <table>
+            <tr><th>Student</th><th>Status</th><th>Notes</th><th>Date</th></tr>
+            {% for row in calls %}
+            <tr>
+                <td>{{ row[0] }}</td><td>{{ row[1] }}</td><td>{{ row[2] }}</td><td>{{ row[3] }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+        <a href="/logout">Logout</a>
+    </div>
+</body>
+</html>
+
+
+
+
+
+

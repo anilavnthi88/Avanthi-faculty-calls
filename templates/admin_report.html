@@ -1,26 +1,69 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Admin Panel</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>All Faculty Call Reports</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        .noprint {
+            margin-bottom: 20px;
+        }
+        @media print {
+            .noprint {
+                display: none;
+            }
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 10px;
+        }
+        table, th, td {
+            border: 1px solid #999;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #eee;
+        }
+    </style>
+    <script>
+        function printPage() {
+            window.print();
+        }
+    </script>
 </head>
 <body>
-    <header>
+    <div class="noprint">
         <h2>All Faculty Call Reports</h2>
-    </header>
-    <div class="container">
-        <table>
-            <tr><th>Faculty</th><th>Student</th><th>Status</th><th>Notes</th><th>Date</th></tr>
-            {% for row in reports %}
-            <tr>
-                <td>{{ row[0] }}</td><td>{{ row[1] }}</td><td>{{ row[2] }}</td><td>{{ row[3] }}</td><td>{{ row[4] }}</td>
-            </tr>
-            {% endfor %}
-        </table>
-        <a href="/logout">Logout</a>
+        <button onclick="printPage()">🖨️ Print Report</button>
+        <a href="/export_excel"><button>⬇️ Download Excel</button></a>
+        <a href="/logout"><button>🚪 Logout</button></a>
     </div>
+
+    <table>
+        <tr>
+            <th>Faculty</th>
+            <th>Student</th>
+            <th>Phone Number</th>
+            <th>Status</th>
+            <th>Notes</th>
+            <th>Date</th>
+        </tr>
+        {% for row in reports %}
+        <tr>
+            <td>{{ row[0] }}</td>
+            <td>{{ row[1] }}</td>
+            <td>{{ row[2] }}</td>
+            <td>{{ row[3] }}</td>
+            <td>{{ row[4] }}</td>
+            <td>{{ row[5] }}</td>
+        </tr>
+        {% endfor %}
+    </table>
 </body>
 </html>
-
 
 

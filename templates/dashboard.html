@@ -12,6 +12,8 @@
         <form method="POST">
             <label for="student">Student:</label>
             <input type="text" name="student" required><br>
+            <label for="phone_number">Phone Number:</label>
+            <input type="text" name="phone_number" required><br>
             <label for="status">Status:</label>
             <input type="text" name="status" required><br>
             <label for="notes">Notes:</label>
@@ -22,10 +24,10 @@
         </form>
         <h3>Your Call Reports</h3>
         <table>
-            <tr><th>Student</th><th>Status</th><th>Notes</th><th>Date</th></tr>
+            <tr><th>Student</th><th>Phone Number</th><th>Status</th><th>Notes</th><th>Date</th></tr>
             {% for row in calls %}
             <tr>
-                <td>{{ row[0] }}</td><td>{{ row[1] }}</td><td>{{ row[2] }}</td><td>{{ row[3] }}</td>
+                <td>{{ row[0] }}</td><td>{{ row[1] }}</td><td>{{ row[2] }}</td><td>{{ row[3] }}</td><td>{{ row[4] }}</td>
             </tr>
             {% endfor %}
         </table>
@@ -33,6 +35,10 @@
     </div>
 </body>
 </html>
+
+
+
+
 
 
 

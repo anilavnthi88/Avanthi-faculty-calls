@@ -8,28 +8,38 @@ app.secret_key = 'your_secret_key'
 
 DATABASE = 'calls.db'
 
-# Initialize the database and tables
+# Initialize the database and tables, and add phone_number column if it doesn't exist
 def init_db():
-    if not os.path.exists(DATABASE):
-        conn = sqlite3.connect(DATABASE)
-        c = conn.cursor()
-        c.execute('''CREATE TABLE users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT NOT NULL,
-            password TEXT NOT NULL,
-            is_admin INTEGER DEFAULT 0
-        )''')
-        c.execute('''CREATE TABLE calls (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER,
-            student TEXT,
-            status TEXT,
-            notes TEXT,
-            call_date TEXT,
-            FOREIGN KEY (user_id) REFERENCES users(id)
-        )''')
+    conn = sqlite3.connect(DATABASE)
+    c = conn.cursor()
+
+    # Create users table if it doesn't exist
+    c.execute('''CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT NOT NULL,
+        password TEXT NOT NULL,
+        is_admin INTEGER DEFAULT 0
+    )''')
+
+    # Create calls table if it doesn't exist
+    c.execute('''CREATE TABLE IF NOT EXISTS calls (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER,
+        student TEXT,
+        status TEXT,
+        notes TEXT,
+        call_date TEXT,
+        FOREIGN KEY (user_id) REFERENCES users(id)
+    )''')
+
+    # Check if phone_number column exists and add it if not
+    try:
+        c.execute("SELECT phone_number FROM calls LIMIT 1")
+    except sqlite3.OperationalError:
+        c.execute("ALTER TABLE calls ADD COLUMN phone_number TEXT")
         conn.commit()
-        conn.close()
+
+    conn.close()
 
 def get_db():
     return sqlite3.connect(DATABASE)
@@ -79,13 +89,14 @@ def dashboard():
     c = conn.cursor()
     if request.method == 'POST':
         student = request.form['student']
+        phone_number = request.form['phone_number']
         status = request.form['status']
         notes = request.form['notes']
         call_date = request.form['call_date']
-        c.execute('INSERT INTO calls (user_id, student, status, notes, call_date) VALUES (?, ?, ?, ?, ?)', 
-                  (session['user_id'], student, status, notes, call_date))
+        c.execute('INSERT INTO calls (user_id, student, phone_number, status, notes, call_date) VALUES (?, ?, ?, ?, ?, ?)',
+                  (session['user_id'], student, phone_number, status, notes, call_date))
         conn.commit()
-    c.execute('SELECT student, status, notes, call_date FROM calls WHERE user_id=?', (session['user_id'],))
+    c.execute('SELECT student, phone_number, status, notes, call_date FROM calls WHERE user_id=?', (session['user_id'],))
     calls = c.fetchall()
     conn.close()
     return render_template('dashboard.html', username=session['username'], calls=calls)
@@ -97,7 +108,7 @@ def adminpanel():
     conn = get_db()
     c = conn.cursor()
     c.execute('''
-        SELECT u.username, c.student, c.status, c.notes, c.call_date
+        SELECT u.username, c.student, c.phone_number, c.status, c.notes, c.call_date
         FROM calls c JOIN users u ON c.user_id = u.id
         ORDER BY c.call_date DESC
     ''')
@@ -112,13 +123,13 @@ def export_excel():
     conn = sqlite3.connect(DATABASE)
     c = conn.cursor()
     c.execute('''
-        SELECT u.username, c.student, c.status, c.notes, c.call_date
+        SELECT u.username, c.student, c.phone_number, c.status, c.notes, c.call_date
         FROM calls c JOIN users u ON c.user_id = u.id
         ORDER BY c.call_date DESC
     ''')
     data = c.fetchall()
     conn.close()
-    df = pd.DataFrame(data, columns=["Faculty", "Student", "Status", "Notes", "Date"])
+    df = pd.DataFrame(data, columns=["Faculty", "Student", "Phone Number", "Status", "Notes", "Date"])
     file_path = 'faculty_call_reports.xlsx'
     df.to_excel(file_path, index=False)
     return send_file(file_path, as_attachment=True)
@@ -131,6 +142,15 @@ def logout():
 if __name__ == '__main__':
     init_db()
     app.run(debug=True)
+
+
+
+
+
+
+
+
+
 
 
 

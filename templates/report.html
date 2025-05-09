@@ -6,6 +6,7 @@
         body {
             font-family: Arial, sans-serif;
             padding: 20px;
+            background-color: #f9f9f9;
         }
         .noprint {
             margin-bottom: 20px;
@@ -26,7 +27,43 @@
             text-align: left;
         }
         th {
-            background-color: #eee;
+            background-color: #4e54c8;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        tr:hover {
+            background-color: #ddd;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #4e54c8;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #3b40a4;
+        }
+        h2 {
+            color: #d9534f;  /* Change this color code as per your preference */
+            font-size: 30px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            font-size: 14px;
+            color: #777;
+        }
+        footer a {
+            color: #777;
+            text-decoration: none;
         }
     </style>
     <script>
@@ -63,8 +100,14 @@
         </tr>
         {% endfor %}
     </table>
+
+    <footer>
+        © 2025 <a href="https://aksolutions.cloud" target="_blank">aksolutions.cloud</a>
+    </footer>
 </body>
 </html>
+
+
 
 
 

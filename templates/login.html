@@ -3,23 +3,58 @@
 <head>
     <title>Login</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            color: #7f8c8d;
+            font-size: 17px;
+        }
+    </style>
 </head>
 <body>
     <header>
-        <h2>Login</h2>
+        <h2>Avanthi's St Theressa</h2>
     </header>
+
     <div class="container">
         <form method="POST" action="/login">
             <label for="username">Username:</label>
             <input type="text" name="username" required><br>
+
             <label for="password">Password:</label>
             <input type="password" name="password" required><br>
+
             <input type="submit" value="Login">
         </form>
         <p>Don't have an account? <a href="/register">Register</a></p>
     </div>
+
+    <footer>
+        &copy; 2025 <a href="https://aksolutions.cloud" target="_blank">aksolutions.cloud</a>
+    </footer>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

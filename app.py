@@ -1,27 +1,22 @@
 from flask import Flask, render_template, request, redirect, session, send_file
 import sqlite3
 import os
-import pandas as pd  # For Excel support
+import pandas as pd
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
-
 DATABASE = 'calls.db'
 
-# Initialize the database and tables, and add phone_number column if it doesn't exist
+# Initialize the database
 def init_db():
     conn = sqlite3.connect(DATABASE)
     c = conn.cursor()
-
-    # Create users table if it doesn't exist
     c.execute('''CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         username TEXT NOT NULL,
         password TEXT NOT NULL,
         is_admin INTEGER DEFAULT 0
     )''')
-
-    # Create calls table if it doesn't exist
     c.execute('''CREATE TABLE IF NOT EXISTS calls (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER,
@@ -29,16 +24,10 @@ def init_db():
         status TEXT,
         notes TEXT,
         call_date TEXT,
+        phone_number TEXT,
         FOREIGN KEY (user_id) REFERENCES users(id)
     )''')
-
-    # Check if phone_number column exists and add it if not
-    try:
-        c.execute("SELECT phone_number FROM calls LIMIT 1")
-    except sqlite3.OperationalError:
-        c.execute("ALTER TABLE calls ADD COLUMN phone_number TEXT")
-        conn.commit()
-
+    conn.commit()
     conn.close()
 
 def get_db():
@@ -61,10 +50,7 @@ def login():
         session['user_id'] = user[0]
         session['username'] = user[1]
         session['is_admin'] = user[3]
-        if user[3] == 1:
-            return redirect('/adminpanel')
-        else:
-            return redirect('/dashboard')
+        return redirect('/adminpanel' if user[3] == 1 else '/dashboard')
     return 'Invalid credentials'
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -75,7 +61,8 @@ def register():
         is_admin = 1 if 'is_admin' in request.form else 0
         conn = get_db()
         c = conn.cursor()
-        c.execute('INSERT INTO users (username, password, is_admin) VALUES (?, ?, ?)', (username, password, is_admin))
+        c.execute('INSERT INTO users (username, password, is_admin) VALUES (?, ?, ?)',
+                  (username, password, is_admin))
         conn.commit()
         conn.close()
         return redirect('/')
@@ -93,10 +80,12 @@ def dashboard():
         status = request.form['status']
         notes = request.form['notes']
         call_date = request.form['call_date']
-        c.execute('INSERT INTO calls (user_id, student, phone_number, status, notes, call_date) VALUES (?, ?, ?, ?, ?, ?)',
+        c.execute('''INSERT INTO calls (user_id, student, phone_number, status, notes, call_date)
+                     VALUES (?, ?, ?, ?, ?, ?)''',
                   (session['user_id'], student, phone_number, status, notes, call_date))
         conn.commit()
-    c.execute('SELECT student, phone_number, status, notes, call_date FROM calls WHERE user_id=?', (session['user_id'],))
+    c.execute('SELECT student, phone_number, status, notes, call_date FROM calls WHERE user_id=?',
+              (session['user_id'],))
     calls = c.fetchall()
     conn.close()
     return render_template('dashboard.html', username=session['username'], calls=calls)
@@ -107,11 +96,9 @@ def adminpanel():
         return redirect('/')
     conn = get_db()
     c = conn.cursor()
-    c.execute('''
-        SELECT u.username, c.student, c.phone_number, c.status, c.notes, c.call_date
-        FROM calls c JOIN users u ON c.user_id = u.id
-        ORDER BY c.call_date DESC
-    ''')
+    c.execute('''SELECT u.username, c.student, c.phone_number, c.status, c.notes, c.call_date
+                 FROM calls c JOIN users u ON c.user_id = u.id
+                 ORDER BY c.call_date DESC''')
     reports = c.fetchall()
     conn.close()
     return render_template('report.html', reports=reports)
@@ -122,15 +109,29 @@ def export_excel():
         return redirect('/')
     conn = sqlite3.connect(DATABASE)
     c = conn.cursor()
-    c.execute('''
-        SELECT u.username, c.student, c.phone_number, c.status, c.notes, c.call_date
-        FROM calls c JOIN users u ON c.user_id = u.id
-        ORDER BY c.call_date DESC
-    ''')
+    c.execute('''SELECT u.username, c.student, c.phone_number, c.status, c.notes, c.call_date
+                 FROM calls c JOIN users u ON c.user_id = u.id
+                 ORDER BY c.call_date DESC''')
     data = c.fetchall()
     conn.close()
     df = pd.DataFrame(data, columns=["Faculty", "Student", "Phone Number", "Status", "Notes", "Date"])
     file_path = 'faculty_call_reports.xlsx'
+    df.to_excel(file_path, index=False)
+    return send_file(file_path, as_attachment=True)
+
+# ✅ New route for individual faculty export
+@app.route('/export_my_excel')
+def export_my_excel():
+    if 'user_id' not in session or session.get('is_admin') == 1:
+        return redirect('/')
+    conn = sqlite3.connect(DATABASE)
+    c = conn.cursor()
+    c.execute('''SELECT student, phone_number, status, notes, call_date
+                 FROM calls WHERE user_id=? ORDER BY call_date DESC''', (session['user_id'],))
+    data = c.fetchall()
+    conn.close()
+    df = pd.DataFrame(data, columns=["Student", "Phone Number", "Status", "Notes", "Date"])
+    file_path = f"{session['username']}_call_report.xlsx"
     df.to_excel(file_path, index=False)
     return send_file(file_path, as_attachment=True)
 
@@ -142,6 +143,14 @@ def logout():
 if __name__ == '__main__':
     init_db()
     app.run(debug=True)
+
+
+
+
+
+
+
+
 
 
 

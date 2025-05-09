@@ -1,3 +1,4 @@
+
 /* General Page Styles */
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -7,7 +8,7 @@ body {
 }
 
 header {
-    background-color: #2f3640;
+    background-color: red; /* changed from #2f3640 to red */
     color: white;
     padding: 20px;
     text-align: center;
@@ -94,4 +95,26 @@ a {
 
 a:hover {
     color: #40739e;
+}
+.welcome-text {
+    font-size: 28px;
+    color: #4e54c8;
+    margin-bottom: 25px;
+    text-align: center;
+    background-color: #eef1ff;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+}
+@font-face {
+    font-family: 'OptiSouvenir-Bold';
+    src: url('/static/fonts/OptiSouvenir-Bold.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+h2 {
+    font-family: 'OptiSouvenir-Bold', serif;
+    text-align: center;
+    color: white;
+    font-size: 30px;
 }

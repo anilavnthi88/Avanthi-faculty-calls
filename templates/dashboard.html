@@ -1,40 +1,203 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Faculty Dashboard</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Faculty Dashboard - aksolutions.cloud</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 60%;
+            margin: 40px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        h2 {
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .top-buttons {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .top-buttons a {
+            margin: 0 15px;
+            text-decoration: none;
+        }
+        .top-buttons button {
+            padding: 12px 24px;
+            background-color: #4e54c8;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .top-buttons button:hover {
+            background-color: #3b40a4;
+        }
+        form {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 12px;
+            box-shadow: 0 0 12px rgba(0,0,0,0.1);
+        }
+        label {
+            display: block;
+            margin-top: 15px;
+            font-size: 16px;
+            font-weight: 500;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            margin-top: 8px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            font-size: 14px;
+        }
+        button[type="submit"] {
+            margin-top: 15px;
+            width: 100%;
+            padding: 14px;
+            background-color: #4e54c8;
+            color: white;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        button[type="submit"]:hover {
+            background-color: #3b40a4;
+        }
+        table {
+            width: 100%;
+            margin-top: 30px;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 12px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+        th {
+            background-color: #4e54c8;
+            color: white;
+        }
+        td {
+            background-color: #f9f9f9;
+        }
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            font-size: 13px;
+            color: #777;
+        }
+        footer a {
+            text-decoration: none;
+            color: #777;
+        }
+        .welcome-text {
+            font-size: 30px;
+            color: red;  /* Changed the color to red */
+            margin-bottom: 25px;
+            text-align: center;
+            background-color: #eef1ff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+            font-weight: bold;
+            letter-spacing: 0.5px;
+        }
+        
+    </style>
 </head>
 <body>
-    <header>
-        <h2>Welcome, {{ username }}</h2>
-    </header>
+
     <div class="container">
+        <h2 class="welcome-text"> Welcome {{ username | title }}</h2>
+
+
+        <div class="top-buttons">
+            <a href="/export_my_excel"><button>⬇️ Download My Excel Report</button></a>
+            <a href="/logout"><button>🚪 Logout</button></a>
+        </div>
+
         <form method="POST">
-            <label for="student">Student:</label>
-            <input type="text" name="student" required><br>
-            <label for="phone_number">Phone Number:</label>
-            <input type="text" name="phone_number" required><br>
-            <label for="status">Status:</label>
-            <input type="text" name="status" required><br>
-            <label for="notes">Notes:</label>
-            <input type="text" name="notes" required><br>
-            <label for="call_date">Call Date:</label>
-            <input type="date" name="call_date" required><br>
-            <input type="submit" value="Submit Call Report">
+            <label>Student Name:</label>
+            <input type="text" name="student" required>
+
+            <label>Phone Number:</label>
+            <input type="text" name="phone_number" required>
+
+            <label>Call Status:</label>
+            <select name="status">
+                <option value="Call Connected"> Call Connected</option>
+                <option value="Not Connected">Not Connected</option>
+                <option value="Busy">Busy</option>
+            </select>
+
+            <label>Notes:</label>
+            <textarea name="notes" rows="3"></textarea>
+
+            <label>Call Date:</label>
+            <input type="date" name="call_date" required>
+
+            <button type="submit">📞 Submit Call Report</button>
         </form>
+
         <h3>Your Call Reports</h3>
         <table>
-            <tr><th>Student</th><th>Phone Number</th><th>Status</th><th>Notes</th><th>Date</th></tr>
-            {% for row in calls %}
-            <tr>
-                <td>{{ row[0] }}</td><td>{{ row[1] }}</td><td>{{ row[2] }}</td><td>{{ row[3] }}</td><td>{{ row[4] }}</td>
-            </tr>
-            {% endfor %}
+            <thead>
+                <tr>
+                    <th>Student</th>
+                    <th>Phone Number</th>
+                    <th>Status</th>
+                    <th>Notes</th>
+                    <th>Call Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in calls %}
+                    <tr>
+                        <td>{{ row[0] }}</td>
+                        <td>{{ row[1] }}</td>
+                        <td>{{ row[2] }}</td>
+                        <td>{{ row[3] }}</td>
+                        <td>{{ row[4] }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
         </table>
-        <a href="/logout">Logout</a>
     </div>
+
+    <footer>
+        © 2025 <a href="https://aksolutions.cloud" target="_blank">aksolutions.cloud</a>
+    </footer>
+
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

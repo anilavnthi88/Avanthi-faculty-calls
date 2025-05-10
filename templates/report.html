@@ -1,63 +1,60 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>All Faculty Call Reports</title>
+    <title>Faculty Call Reports</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             padding: 20px;
             background-color: #f9f9f9;
         }
-        .noprint {
+        h2 {
+            text-align: center;
+            color: #d9534f;
             margin-bottom: 20px;
         }
-        @media print {
-            .noprint {
-                display: none;
-            }
+        .button-group {
+            text-align: center;
+            margin-bottom: 20px;
         }
-        table {
-            border-collapse: collapse;
-            width: 100%;
-            margin-top: 10px;
-        }
-        table, th, td {
-            border: 1px solid #999;
-            padding: 8px;
-            text-align: left;
-        }
-        th {
-            background-color: #4e54c8;
-            color: white;
-        }
-        tr:nth-child(even) {
-            background-color: #f2f2f2;
-        }
-        tr:hover {
-            background-color: #ddd;
-        }
-        button {
+        .btn {
             padding: 10px 20px;
             background-color: #4e54c8;
             color: white;
             border: none;
             border-radius: 5px;
+            margin: 5px;
             cursor: pointer;
             font-size: 16px;
-            margin-right: 10px;
         }
-        button:hover {
+        .btn:hover {
             background-color: #3b40a4;
         }
-        h2 {
-            color: #d9534f;  /* Change this color code as per your preference */
-            font-size: 30px;
-            text-align: center;
-            margin-bottom: 20px;
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
         }
+        th, td {
+            padding: 10px;
+            border: 1px solid #999;
+            text-align: left;
+            cursor: pointer;
+        }
+        th {
+            background-color: #4e54c8;
+            color: white;
+        }
+        tr:nth-child(even) { background-color: #f2f2f2; }
+        tr:hover { background-color: #ddd; }
+
+        #resetBtn {
+            display: none;
+        }
+
         footer {
             text-align: center;
-            margin-top: 50px;
+            margin-top: 40px;
             font-size: 14px;
             color: #777;
         }
@@ -67,38 +64,82 @@
         }
     </style>
     <script>
-        function printPage() {
-            window.print();
+        let originalRows = [];
+
+        function storeOriginalTable() {
+            const table = document.getElementById("reportTable");
+            const rows = Array.from(table.rows).slice(1); // Skip header
+            originalRows = rows.map(row => row.cloneNode(true));
         }
+
+        function filterByFaculty(facultyName) {
+            const table = document.getElementById("reportTable");
+            const tbody = table.tBodies[0];
+            tbody.innerHTML = '';
+            originalRows.forEach(row => {
+                if (row.cells[0].innerText === facultyName) {
+                    tbody.appendChild(row.cloneNode(true));
+                }
+            });
+            document.getElementById("resetBtn").style.display = "inline-block";
+        }
+
+        function resetTable() {
+            const table = document.getElementById("reportTable");
+            const tbody = table.tBodies[0];
+            tbody.innerHTML = '';
+            originalRows.forEach(row => {
+                tbody.appendChild(row.cloneNode(true));
+            });
+            document.getElementById("resetBtn").style.display = "none";
+        }
+
+        window.onload = () => {
+            storeOriginalTable();
+            const table = document.getElementById("reportTable");
+            const rows = Array.from(table.rows).slice(1); // skip header
+            rows.forEach(row => {
+                row.onclick = () => {
+                    const faculty = row.cells[0].innerText;
+                    filterByFaculty(faculty);
+                };
+            });
+        };
     </script>
 </head>
 <body>
-    <div class="noprint">
-        <h2>All Faculty Call Reports</h2>
-        <button onclick="printPage()">🖨️ Print Report</button>
-        <a href="/export_excel"><button>⬇️ Download Excel</button></a>
-        <a href="/logout"><button>🚪 Logout</button></a>
+    <h2>All Faculty Call Reports</h2>
+
+    <div class="button-group">
+        <button class="btn" onclick="window.print()">🖨️ Print</button>
+        <a href="/export_excel"><button class="btn">⬇️ Download Excel</button></a>
+        <a href="/logout"><button class="btn">🚪 Logout</button></a>
+        <button id="resetBtn" class="btn" onclick="resetTable()">🔄 Show All</button>
     </div>
 
-    <table>
-        <tr>
-            <th>Faculty</th>
-            <th>Student</th>
-            <th>Phone Number</th>
-            <th>Status</th>
-            <th>Notes</th>
-            <th>Date</th>
-        </tr>
-        {% for row in reports %}
-        <tr>
-            <td>{{ row[0] }}</td>
-            <td>{{ row[1] }}</td>
-            <td>{{ row[2] }}</td>
-            <td>{{ row[3] }}</td>
-            <td>{{ row[4] }}</td>
-            <td>{{ row[5] }}</td>
-        </tr>
-        {% endfor %}
+    <table id="reportTable">
+        <thead>
+            <tr>
+                <th>Faculty</th>
+                <th>Student</th>
+                <th>Phone</th>
+                <th>Status</th>
+                <th>Notes</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in reports %}
+            <tr>
+                <td>{{ row[0] }}</td>
+                <td>{{ row[1] }}</td>
+                <td>{{ row[2] }}</td>
+                <td>{{ row[3] }}</td>
+                <td>{{ row[4] }}</td>
+                <td>{{ row[5] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
     </table>
 
     <footer>
@@ -106,6 +147,10 @@
     </footer>
 </body>
 </html>
+
+
+
+
 
 
 

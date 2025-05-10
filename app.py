@@ -7,7 +7,6 @@ app = Flask(__name__)
 app.secret_key = 'your_secret_key'
 DATABASE = 'calls.db'
 
-# Initialize the database
 def init_db():
     conn = sqlite3.connect(DATABASE)
     c = conn.cursor()
@@ -96,18 +95,42 @@ def adminpanel():
         return redirect('/')
     conn = get_db()
     c = conn.cursor()
+    c.execute('''SELECT DISTINCT u.id, u.username FROM users u
+                 JOIN calls c ON u.id = c.user_id WHERE u.is_admin = 0''')
+    faculty_list = c.fetchall()
+
     c.execute('''SELECT u.username, c.student, c.phone_number, c.status, c.notes, c.call_date
                  FROM calls c JOIN users u ON c.user_id = u.id
                  ORDER BY c.call_date DESC''')
     reports = c.fetchall()
     conn.close()
-    return render_template('report.html', reports=reports)
+    return render_template('report.html', reports=reports, faculty_list=faculty_list, selected_user=None)
+
+@app.route('/faculty/<int:user_id>')
+def faculty_report(user_id):
+    if 'user_id' not in session or session.get('is_admin') != 1:
+        return redirect('/')
+    conn = get_db()
+    c = conn.cursor()
+    c.execute('SELECT username FROM users WHERE id=?', (user_id,))
+    selected_user = c.fetchone()[0]
+
+    c.execute('''SELECT DISTINCT u.id, u.username FROM users u
+                 JOIN calls c ON u.id = c.user_id WHERE u.is_admin = 0''')
+    faculty_list = c.fetchall()
+
+    c.execute('''SELECT u.username, c.student, c.phone_number, c.status, c.notes, c.call_date
+                 FROM calls c JOIN users u ON c.user_id = u.id
+                 WHERE u.id=? ORDER BY c.call_date DESC''', (user_id,))
+    reports = c.fetchall()
+    conn.close()
+    return render_template('report.html', reports=reports, faculty_list=faculty_list, selected_user=selected_user)
 
 @app.route('/export_excel')
 def export_excel():
     if 'user_id' not in session or session.get('is_admin') != 1:
         return redirect('/')
-    conn = sqlite3.connect(DATABASE)
+    conn = get_db()
     c = conn.cursor()
     c.execute('''SELECT u.username, c.student, c.phone_number, c.status, c.notes, c.call_date
                  FROM calls c JOIN users u ON c.user_id = u.id
@@ -119,12 +142,11 @@ def export_excel():
     df.to_excel(file_path, index=False)
     return send_file(file_path, as_attachment=True)
 
-# ✅ New route for individual faculty export
 @app.route('/export_my_excel')
 def export_my_excel():
     if 'user_id' not in session or session.get('is_admin') == 1:
         return redirect('/')
-    conn = sqlite3.connect(DATABASE)
+    conn = get_db()
     c = conn.cursor()
     c.execute('''SELECT student, phone_number, status, notes, call_date
                  FROM calls WHERE user_id=? ORDER BY call_date DESC''', (session['user_id'],))
@@ -143,6 +165,7 @@ def logout():
 if __name__ == '__main__':
     init_db()
     app.run(debug=True)
+
 
 
 

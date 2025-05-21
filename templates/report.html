@@ -1,7 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
     <title>Faculty Call Reports</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -34,6 +36,7 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 10px;
+            font-size: 15px;
         }
         th, td {
             padding: 10px;
@@ -47,11 +50,12 @@
         }
         tr:nth-child(even) { background-color: #f2f2f2; }
         tr:hover { background-color: #ddd; }
-
+        .active-row td {
+            background-color: #d9edf7 !important;
+        }
         #resetBtn {
             display: none;
         }
-
         footer {
             text-align: center;
             margin-top: 40px;
@@ -62,13 +66,34 @@
             color: #777;
             text-decoration: none;
         }
+        @media (max-width: 768px) {
+            table, thead, tbody, th, td, tr {
+                display: block;
+            }
+            thead tr {
+                display: none;
+            }
+            td {
+                position: relative;
+                padding-left: 50%;
+                text-align: right;
+            }
+            td::before {
+                content: attr(data-label);
+                position: absolute;
+                left: 10px;
+                font-weight: bold;
+                text-align: left;
+                white-space: nowrap;
+            }
+        }
     </style>
     <script>
         let originalRows = [];
 
         function storeOriginalTable() {
             const table = document.getElementById("reportTable");
-            const rows = Array.from(table.rows).slice(1); // Skip header
+            const rows = Array.from(table.rows).slice(1);
             originalRows = rows.map(row => row.cloneNode(true));
         }
 
@@ -78,6 +103,7 @@
             tbody.innerHTML = '';
             originalRows.forEach(row => {
                 if (row.cells[0].innerText === facultyName) {
+                    row.classList.add("active-row");
                     tbody.appendChild(row.cloneNode(true));
                 }
             });
@@ -97,7 +123,7 @@
         window.onload = () => {
             storeOriginalTable();
             const table = document.getElementById("reportTable");
-            const rows = Array.from(table.rows).slice(1); // skip header
+            const rows = Array.from(table.rows).slice(1);
             rows.forEach(row => {
                 row.onclick = () => {
                     const faculty = row.cells[0].innerText;
@@ -120,25 +146,37 @@
     <table id="reportTable">
         <thead>
             <tr>
-                <th>Faculty</th>
-                <th>Student</th>
-                <th>Phone</th>
+                <th title="Click on a faculty row to filter">Faculty</th>
+                <th>Student Name</th>
+                <th>Phone Number</th>
+                <th>Hall Ticket No</th>
+                <th>Rank</th>
+                <th>Exam Type</th>
                 <th>Status</th>
                 <th>Notes</th>
-                <th>Date</th>
+                <th>Address</th>
+                <th>Call Date</th>
             </tr>
         </thead>
         <tbody>
-            {% for row in reports %}
-            <tr>
-                <td>{{ row[0] }}</td>
-                <td>{{ row[1] }}</td>
-                <td>{{ row[2] }}</td>
-                <td>{{ row[3] }}</td>
-                <td>{{ row[4] }}</td>
-                <td>{{ row[5] }}</td>
-            </tr>
-            {% endfor %}
+            {% if reports %}
+                {% for row in reports %}
+                <tr>
+                    <td data-label="Faculty">{{ row[0] }}</td>
+                    <td data-label="Student Name">{{ row[1] }}</td>
+                    <td data-label="Phone Number">{{ row[2] }}</td>
+                    <td data-label="Hall Ticket No">{{ row[3] }}</td>
+                    <td data-label="Rank">{{ row[4] }}</td>
+                    <td data-label="Exam Type">{{ row[5] }}</td>
+                    <td data-label="Status">{{ row[6] }}</td>
+                    <td data-label="Notes">{{ row[7] }}</td>
+                    <td data-label="Address">{{ row[8] }}</td>
+                    <td data-label="Call Date">{{ row[9] }}</td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr><td colspan="10" style="text-align:center;">No reports found.</td></tr>
+            {% endif %}
         </tbody>
     </table>
 
@@ -147,6 +185,54 @@
     </footer>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

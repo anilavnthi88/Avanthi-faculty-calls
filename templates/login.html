@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Login</title>
+    <title>Avanthi's St Theressa</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <style>
         footer {
@@ -14,27 +14,72 @@
 </head>
 <body>
     <header>
-        <h2>Avanthi's St Theressa Institute of Engineering & Technology</h2>
+          <img src="https://sttheressaengg.ac.in/register/assets/stt.png" alt="College Logo" style="height: 140px;">
+       
+       
+       
     </header>
-
+    
     <div class="container">
-        <form method="POST" action="/login">
+        <form method="POST" action="/login" autocomplete="off">
+            <!-- Hidden fields to confuse browser autofill -->
+            <input type="text" name="fakeuser" style="display:none">
+            <input type="password" name="fakepass" style="display:none">
+        
             <label for="username">Username:</label>
-            <input type="text" name="username" required><br>
-
+            <input type="text" name="username" autocomplete="off" required><br>
+        
             <label for="password">Password:</label>
-            <input type="password" name="password" required><br>
-
+            <input type="password" name="password" autocomplete="new-password" required><br>
+        
             <input type="submit" value="Login">
         </form>
-        <p>Don't have an account? <a href="/register">Register</a></p>
+        
+       
     </div>
 
-    <footer>
-        &copy; 2025 <a href="https://aksolutions.cloud" target="_blank">aksolutions.cloud</a>
+    <footer style="text-align:center; margin-top: 20px; padding: 10px; color: #555;">
+        &copy; 2025 <a href="https://aksolutions.cloud" target="_blank" rel="noopener noreferrer">aksolutions.cloud</a>
     </footer>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -2,13 +2,13 @@
 /* General Page Styles */
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #f5f6fa;
+    background-color: white;
     margin: 0;
     padding: 0;
 }
 
 header {
-    background-color: red; /* changed from #2f3640 to red */
+    background-color: white; 
     color: white;
     padding: 20px;
     text-align: center;
@@ -115,6 +115,6 @@ a:hover {
 h2 {
     font-family: 'OptiSouvenir-Bold', serif;
     text-align: center;
-    color: white;
+    color:  red;
     font-size: 30px;
 }

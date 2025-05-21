@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head><title>Register {{ role }}</title></head>
+<body>
+  <h2>Register as {{ role }}</h2>
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <ul style="color:red;">
+        {% for msg in messages %}
+          <li>{{ msg }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
+  <form method="post">
+    Username: <input name="username" type="text" required /><br/>
+    Password: <input name="password" type="password" required /><br/>
+    Admin Secret Code: <input name="secret_code" type="password" required /><br/>
+    <button type="submit">Register</button>
+  </form>
+  <p><a href="/">Back to Login</a></p>
+  <footer>
+    &copy; 2025 <a href="https://aksolutions.cloud" target="_blank">aksolutions.cloud</a>
+</footer>
+</body>
+</html>
+

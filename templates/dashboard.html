@@ -3,189 +3,328 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Faculty Dashboard - aksolutions.cloud</title>
+    <title>Faculty Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
-            font-family: 'Segoe UI', sans-serif;
-            background-color: #f0f2f5;
-            margin: 0;
-            padding: 0;
+            font-family: 'Inter', sans-serif;
+            background-color: #e2e8f0; /* Slightly darker light gray background */
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            padding: 1.5rem; /* Increased padding */
         }
-        .container {
-            width: 60%;
-            margin: 40px auto;
-            padding: 20px;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        /* Custom scrollbar for the table container */
+        .table-container::-webkit-scrollbar {
+            height: 8px;
         }
-        h2 {
-            color: #333;
-            font-size: 24px;
-            margin-bottom: 20px;
-            text-align: center;
+        .table-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
         }
-        .top-buttons {
-            text-align: center;
-            margin-bottom: 30px;
+        .table-container::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
         }
-        .top-buttons a {
-            margin: 0 15px;
-            text-decoration: none;
+        .table-container::-webkit-scrollbar-thumb:hover {
+            background: #555;
         }
-        .top-buttons button {
-            padding: 12px 24px;
-            background-color: #4e54c8;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 16px;
+        /* Style for table rows to allow forms to span cells without breaking layout */
+        .table-row-form {
+            display: contents; /* Allows children to participate in grid/table layout of parent */
         }
-        .top-buttons button:hover {
-            background-color: #3b40a4;
+
+        /* Print-specific styles */
+        @media print {
+            body {
+                background-color: #fff; /* White background for printing */
+                padding: 0;
+                margin: 0;
+            }
+            .no-print {
+                display: none !important; /* Hide elements not needed for print */
+            }
+            .bg-white, .shadow-2xl, .border, .rounded-xl {
+                box-shadow: none !important;
+                border: none !important;
+                border-radius: 0 !important;
+                padding: 0 !important;
+            }
+            h1, h3 {
+                color: #000 !important; /* Ensure black text for headers */
+            }
+            table {
+                width: 100% !important; /* Force table to full width */
+                table-layout: auto !important; /* Allow columns to size based on content */
+                border-collapse: collapse;
+            }
+            th, td {
+                border: 1px solid #ccc; /* Add borders to table cells for print */
+                padding: 8px;
+                text-align: left;
+                font-size: 9px; /* Slightly smaller font for print to fit more content */
+                white-space: normal !important; /* Allow all text to wrap */
+                word-wrap: break-word; /* Ensure long words break */
+                overflow: visible !important; /* Ensure content is not hidden */
+                max-width: none !important; /* Remove max-width constraints */
+            }
+            .table-container {
+                overflow: visible !important; /* Allow table to expand */
+            }
+            /* Hide input fields and buttons in print, display their values */
+            .table-row-form select,
+            .table-row-form textarea,
+            .table-row-form input[type="date"],
+            .table-row-form button[type="submit"] {
+                display: none;
+            }
+            .table-row-form td {
+                display: table-cell; /* Ensure cells are displayed */
+            }
+            /* Display values of select/textarea/input for print */
+            .print-only {
+                display: block !important; /* Show the span content */
+            }
+            /* Ensure address is not truncated in print */
+            .print-only-address {
+                max-width: none !important;
+                overflow: visible !important;
+                white-space: normal !important;
+                text-overflow: clip !important;
+            }
         }
-        form {
-            margin-top: 20px;
-            padding: 20px;
-            background-color: #fff;
-            border-radius: 12px;
-            box-shadow: 0 0 12px rgba(0,0,0,0.1);
-        }
-        label {
-            display: block;
-            margin-top: 15px;
-            font-size: 16px;
-            font-weight: 500;
-        }
-        input, select, textarea {
-            width: 100%;
-            padding: 12px;
-            margin-top: 8px;
-            border-radius: 8px;
-            border: 1px solid #ddd;
-            font-size: 14px;
-        }
-        button[type="submit"] {
-            margin-top: 15px;
-            width: 100%;
-            padding: 14px;
-            background-color: #4e54c8;
-            color: white;
-            font-size: 16px;
-            border-radius: 8px;
-            cursor: pointer;
-        }
-        button[type="submit"]:hover {
-            background-color: #3b40a4;
-        }
-        table {
-            width: 100%;
-            margin-top: 30px;
-            border-collapse: collapse;
-        }
-        th, td {
-            padding: 12px;
-            text-align: center;
-            border: 1px solid #ddd;
-        }
-        th {
-            background-color: #4e54c8;
-            color: white;
-        }
-        td {
-            background-color: #f9f9f9;
-        }
-        footer {
-            text-align: center;
-            margin-top: 50px;
-            font-size: 13px;
-            color: #777;
-        }
-        footer a {
-            text-decoration: none;
-            color: #777;
-        }
-        .welcome-text {
-            font-size: 30px;
-            color: red;  /* Changed the color to red */
-            margin-bottom: 25px;
-            text-align: center;
-            background-color: #eef1ff;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
-            font-weight: bold;
-            letter-spacing: 0.5px;
-        }
-        
     </style>
 </head>
-<body>
-
-    <div class="container">
-        <h2 class="welcome-text"> Welcome {{ username | title }}</h2>
-
-
-        <div class="top-buttons">
-            <a href="/export_my_excel"><button>⬇️ Download My Excel Report</button></a>
-            <a href="/logout"><button>🚪 Logout</button></a>
+<body class="flex flex-col items-center">
+    <div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-6xl mt-8 border border-gray-100">
+        <div class="flex flex-col sm:flex-row justify-between items-center mb-8 pb-4 border-b border-gray-200 no-print">
+            <h1 class="text-4xl font-extrabold text-gray-900 mb-4 sm:mb-0">Welcome, <span class="text-blue-700">{{ username | capitalize }}</span> (Faculty)</h1>
+            <a href="/logout" class="px-6 py-2 bg-red-500 text-white font-semibold rounded-lg shadow-md hover:bg-red-600 transition duration-300 ease-in-out transform hover:scale-105">Logout</a>
         </div>
 
-        <form method="POST">
-            <label>Student Name:</label>
-            <input type="text" name="student" required>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <ul class="mb-8 space-y-3 no-print">
+                    {% for category, msg in messages %}
+                        <li class="p-4 rounded-lg text-base font-medium
+                            {% if category == 'danger' %}bg-red-100 text-red-800 border border-red-200{% elif category == 'success' %}bg-green-100 text-green-800 border border-green-200{% else %}bg-blue-100 text-blue-800 border border-blue-200{% endif %}">
+                            {{ msg }}
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
 
-            <label>Phone Number:</label>
-            <input type="text" name="phone_number" required>
+        <h3 class="text-3xl font-bold text-gray-800 mb-8 text-center">Your Assigned Students</h3>
 
-            <label>Call Status:</label>
-            <select name="status">
-                <option value="Call Connected"> Call Connected</option>
-                <option value="Not Connected">Not Connected</option>
-                <option value="Busy">Busy</option>
-            </select>
+        {% if assigned %}
+            <div class="mb-8 text-center no-print">
+                <a href="{{ url_for('export_assigned_excel') }}"
+                   class="inline-flex items-center justify-center px-8 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold rounded-lg shadow-lg hover:from-purple-700 hover:to-indigo-700 focus:outline-none focus:ring-4 focus:ring-purple-300 transition duration-300 ease-in-out transform hover:scale-105">
+                    Download My Assigned Students Report (Excel)
+                </a>
+                <button onclick="window.print()"
+                        class="inline-flex items-center justify-center px-8 py-3 ml-4 bg-gradient-to-r from-gray-600 to-gray-800 text-white font-bold rounded-lg shadow-lg hover:from-gray-700 hover:to-gray-900 focus:outline-none focus:ring-4 focus:ring-gray-300 transition duration-300 ease-in-out transform hover:scale-105">
+                    Print Report
+                </button>
+            </div>
 
-            <label>Notes:</label>
-            <textarea name="notes" rows="3"></textarea>
-
-            <label>Call Date:</label>
-            <input type="date" name="call_date" required>
-
-            <button type="submit">📞 Submit Call Report</button>
-        </form>
-
-        <h3>Your Call Reports</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>Student</th>
-                    <th>Phone Number</th>
-                    <th>Status</th>
-                    <th>Notes</th>
-                    <th>Call Date</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for row in calls %}
-                    <tr>
-                        <td>{{ row[0] }}</td>
-                        <td>{{ row[1] }}</td>
-                        <td>{{ row[2] }}</td>
-                        <td>{{ row[3] }}</td>
-                        <td>{{ row[4] }}</td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+            <div class="overflow-x-auto rounded-lg shadow-lg border border-gray-200 table-container">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-100">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Student</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Phone Number</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Hall Ticket No</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Rank</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Exam Type</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Address</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Assignment Date</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Notes</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Call Date</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for s in assigned %}
+                            <tr class="hover:bg-blue-50 even:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ s[1] }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ s[2] }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ s[3] }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ s[4] }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ s[5] }}</td>
+                                <td class="px-6 py-4 text-sm text-gray-700 max-w-xs truncate">
+                                    <span class="no-print">{{ s[6] }}</span>
+                                    <span class="print-only hidden print-only-address">{{ s[6] }}</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                    <span class="print-only hidden print-only-date">{{ (s[10] | default('')).split(' ')[0] }}</span>
+                                    <span class="no-print">{{ (s[10] | default('')).split(' ')[0] }}</span>
+                                </td>
+                                
+                                <form action="/dashboard" method="POST" class="table-row-form">
+                                    <input type="hidden" name="student_id" value="{{ s[0] }}">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                        <select name="status" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm bg-white no-print">
+                                            <option value="Pending" {% if s[7] == 'Pending' %}selected{% endif %}>Pending</option>
+                                            <option value="Contacted" {% if s[7] == 'Contacted' %}selected{% endif %}>Contacted</option>
+                                            <option value="Admitted" {% if s[7] == 'Admitted' %}selected{% endif %}>Admitted</option>
+                                            <option value="Not Interested" {% if s[7] == 'Not Interested' %}selected{% endif %}>Not Interested</option>
+                                            <option value="Follow Up" {% if s[7] == 'Follow Up' %}selected{% endif %}>Follow Up</option>
+                                        </select>
+                                        <span class="print-only hidden">{{ s[7] or '' }}</span>
+                                    </td>
+                                    <td class="px-6 py-4 text-sm text-gray-700">
+                                        <textarea name="notes" rows="3" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm resize-y no-print">{{ s[8] or '' }}</textarea>
+                                        <span class="print-only hidden">{{ s[8] or '' }}</span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                        <input type="date" name="call_date" value="{{ s[9] or '' }}" class="date-input block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm bg-white no-print">
+                                        <span class="print-only hidden print-only-date">{{ s[9] or '' }}</span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                        <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out transform hover:scale-105 no-print">
+                                            Update
+                                        </button>
+                                    </td>
+                                </form>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-center text-gray-600 text-lg mt-8 p-4 bg-gray-100 rounded-lg shadow-inner">No students assigned to you yet.</p>
+        {% endif %}
     </div>
 
-    <footer>
-        © 2025 <a href="https://aksolutions.cloud" target="_blank">aksolutions.cloud</a>
-    </footer>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const dateInputs = document.querySelectorAll('.date-input');
+            dateInputs.forEach(input => {
+                let dateValue = input.value;
+                if (dateValue) {
+                    const parts = dateValue.split(' ')[0];
+                    try {
+                        const date = new Date(parts);
+                        if (!isNaN(date.getTime())) {
+                            const year = date.getFullYear();
+                            const month = String(date.getMonth() + 1).padStart(2, '0');
+                            const day = String(date.getDate()).padStart(2, '0');
+                            input.value = `${year}-${month}-${day}`;
+                        } else {
+                            input.value = '';
+                        }
+                    } catch (e) {
+                        input.value = '';
+                    }
+                }
+            });
 
+            const printOnlySpans = document.querySelectorAll('.print-only');
+            printOnlySpans.forEach(span => {
+                let associatedInput = null;
+                if (span.previousElementSibling && (span.previousElementSibling.tagName === 'SELECT' || span.previousElementSibling.tagName === 'TEXTAREA' || span.previousElementSibling.tagName === 'INPUT')) {
+                    associatedInput = span.previousElementSibling;
+                } else {
+                    const parentTd = span.closest('td');
+                    if (parentTd) {
+                        associatedInput = parentTd.querySelector('select, textarea, input[type="date"]');
+                    }
+                }
+                if (associatedInput) {
+                    span.textContent = associatedInput.value;
+                }
+            });
+        });
+    </script>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

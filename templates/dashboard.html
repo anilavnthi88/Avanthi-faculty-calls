@@ -134,6 +134,7 @@
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-100">
                         <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">S.No.</th> {# Added S.No. header #}
                             <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Student</th>
                             <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Phone Number</th>
                             <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Hall Ticket No</th>
@@ -150,39 +151,40 @@
                     <tbody class="bg-white divide-y divide-gray-200">
                         {% for s in assigned %}
                             <tr class="hover:bg-blue-50 even:bg-gray-50">
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ s[1] }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ s[2] }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ s[3] }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ s[4] }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ s[5] }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ s[0] }}</td> {# S.No. (new index 0) #}
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ s[2] }}</td> {# Student (original index 1, now 2) #}
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ s[3] }}</td> {# Phone Number (original index 2, now 3) #}
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ s[4] }}</td> {# Hall Ticket No (original index 3, now 4) #}
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ s[5] }}</td> {# Rank (original index 4, now 5) #}
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ s[6] }}</td> {# Exam Type (original index 5, now 6) #}
                                 <td class="px-6 py-4 text-sm text-gray-700 max-w-xs truncate">
-                                    <span class="no-print">{{ s[6] }}</span>
-                                    <span class="print-only hidden print-only-address">{{ s[6] }}</span>
+                                    <span class="no-print">{{ s[7] }}</span> {# Address (original index 6, now 7) #}
+                                    <span class="print-only hidden print-only-address">{{ s[7] }}</span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                                    <span class="print-only hidden print-only-date">{{ (s[10] | default('')).split(' ')[0] }}</span>
-                                    <span class="no-print">{{ (s[10] | default('')).split(' ')[0] }}</span>
+                                    <span class="print-only hidden print-only-date">{{ (s[11] | default('')).split(' ')[0] }}</span> {# Assignment Date (original index 10, now 11) #}
+                                    <span class="no-print">{{ (s[11] | default('')).split(' ')[0] }}</span>
                                 </td>
                                 
                                 <form action="/dashboard" method="POST" class="table-row-form">
-                                    <input type="hidden" name="student_id" value="{{ s[0] }}">
+                                    <input type="hidden" name="student_id" value="{{ s[1] }}"> {# IMPORTANT: This is the actual DB 'id' (original index 0, now 1) #}
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                                         <select name="status" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm bg-white no-print">
-                                            <option value="Pending" {% if s[7] == 'Pending' %}selected{% endif %}>Pending</option>
-                                            <option value="Contacted" {% if s[7] == 'Contacted' %}selected{% endif %}>Contacted</option>
-                                            <option value="Admitted" {% if s[7] == 'Admitted' %}selected{% endif %}>Admitted</option>
-                                            <option value="Not Interested" {% if s[7] == 'Not Interested' %}selected{% endif %}>Not Interested</option>
-                                            <option value="Follow Up" {% if s[7] == 'Follow Up' %}selected{% endif %}>Follow Up</option>
+                                            <option value="Pending" {% if s[8] == 'Pending' %}selected{% endif %}>Pending</option> {# Status (original index 7, now 8) #}
+                                            <option value="Contacted" {% if s[8] == 'Contacted' %}selected{% endif %}>Contacted</option>
+                                            <option value="Admitted" {% if s[8] == 'Admitted' %}selected{% endif %}>Admitted</option>
+                                            <option value="Not Interested" {% if s[8] == 'Not Interested' %}selected{% endif %}>Not Interested</option>
+                                            <option value="Follow Up" {% if s[8] == 'Follow Up' %}selected{% endif %}>Follow Up</option>
                                         </select>
-                                        <span class="print-only hidden">{{ s[7] or '' }}</span>
-                                    </td>
-                                    <td class="px-6 py-4 text-sm text-gray-700">
-                                        <textarea name="notes" rows="3" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm resize-y no-print">{{ s[8] or '' }}</textarea>
                                         <span class="print-only hidden">{{ s[8] or '' }}</span>
                                     </td>
+                                    <td class="px-6 py-4 text-sm text-gray-700">
+                                        <textarea name="notes" rows="3" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm resize-y no-print">{{ s[9] or '' }}</textarea> {# Notes (original index 8, now 9) #}
+                                        <span class="print-only hidden">{{ s[9] or '' }}</span>
+                                    </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                                        <input type="date" name="call_date" value="{{ s[9] or '' }}" class="date-input block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm bg-white no-print">
-                                        <span class="print-only hidden print-only-date">{{ s[9] or '' }}</span>
+                                        <input type="date" name="call_date" value="{{ s[10] or '' }}" class="date-input block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm bg-white no-print"> {# Call Date (original index 9, now 10) #}
+                                        <span class="print-only hidden print-only-date">{{ s[10] or '' }}</span>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out transform hover:scale-105 no-print">
@@ -206,18 +208,21 @@
             dateInputs.forEach(input => {
                 let dateValue = input.value;
                 if (dateValue) {
-                    const parts = dateValue.split(' ')[0];
+                    // Split the date string at the first space to handle potential timestamps
+                    const parts = dateValue.split(' ')[0]; 
                     try {
                         const date = new Date(parts);
-                        if (!isNaN(date.getTime())) {
+                        if (!isNaN(date.getTime())) { // Check if the date is valid
                             const year = date.getFullYear();
                             const month = String(date.getMonth() + 1).padStart(2, '0');
                             const day = String(date.getDate()).padStart(2, '0');
                             input.value = `${year}-${month}-${day}`;
                         } else {
+                            // If parsing failed, clear the input or set a default
                             input.value = '';
                         }
                     } catch (e) {
+                        // Catch any errors during date parsing
                         input.value = '';
                     }
                 }
@@ -226,23 +231,29 @@
             const printOnlySpans = document.querySelectorAll('.print-only');
             printOnlySpans.forEach(span => {
                 let associatedInput = null;
+                // Try to find the previous sibling input/select/textarea
                 if (span.previousElementSibling && (span.previousElementSibling.tagName === 'SELECT' || span.previousElementSibling.tagName === 'TEXTAREA' || span.previousElementSibling.tagName === 'INPUT')) {
                     associatedInput = span.previousElementSibling;
                 } else {
+                    // If not immediately previous, look within the parent <td>
                     const parentTd = span.closest('td');
                     if (parentTd) {
                         associatedInput = parentTd.querySelector('select, textarea, input[type="date"]');
                     }
                 }
                 if (associatedInput) {
-                    span.textContent = associatedInput.value;
+                    // For select elements, get the text of the selected option
+                    if (associatedInput.tagName === 'SELECT') {
+                        span.textContent = associatedInput.options[associatedInput.selectedIndex].text;
+                    } else {
+                        span.textContent = associatedInput.value;
+                    }
                 }
             });
         });
     </script>
 </body>
 </html>
-
 
 
 

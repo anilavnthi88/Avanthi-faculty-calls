@@ -176,14 +176,20 @@ def dashboard():
         else:
             flash('Error: Student ID not provided for update.', 'danger')
 
-    # Select assignment_date as well, and order by it first
     c.execute('''SELECT id, student, phone_number, hall_ticket_no, rank, exam_type, address, status, notes, call_date, assignment_date
                  FROM assigned_students WHERE faculty_id=? ORDER BY assignment_date DESC, id DESC''',
               (session['user_id'],))
-    assigned = c.fetchall()
+    assigned_data = c.fetchall() # Renamed to avoid conflict with 'assigned' below
     conn.close()
 
-    return render_template('dashboard.html', username=session['username'], assigned=assigned)
+    # Add S.No. to the data for rendering
+    # Each item in assigned_data is a tuple. We convert it to a list to prepend S.No.
+    assigned_with_sno = []
+    for i, row in enumerate(assigned_data):
+        assigned_with_sno.append((i + 1,) + row) # Prepend S.No. (starts from 1)
+
+    return render_template('dashboard.html', username=session['username'], assigned=assigned_with_sno)
+
 
 @app.route('/adminpanel', methods=['GET'])
 def adminpanel():
@@ -199,24 +205,28 @@ def adminpanel():
     
     faculty_filter = request.args.get('faculty', '')
 
-    reports = []
+    reports_data = [] # Renamed to avoid conflict with 'reports' below
     if faculty_filter:
-        # Select assignment_date as well, and order by it first
         c.execute('''SELECT u.username, a.student, a.phone_number, a.hall_ticket_no, a.rank, a.exam_type, 
                             a.status, a.notes, a.address, a.call_date, a.assignment_date
-                     FROM assigned_students a JOIN users u ON a.faculty_id = u.id
-                     WHERE u.id=? ORDER BY a.assignment_date DESC, a.id DESC''', (faculty_filter,))
-        reports = c.fetchall()
+                       FROM assigned_students a JOIN users u ON a.faculty_id = u.id
+                       WHERE u.id=? ORDER BY a.assignment_date DESC, a.id DESC''', (faculty_filter,))
+        reports_data = c.fetchall()
     else:
-        # Select assignment_date as well, and order by it first
         c.execute('''SELECT u.username, a.student, a.phone_number, a.hall_ticket_no, a.rank, a.exam_type, 
                             a.status, a.notes, a.address, a.call_date, a.assignment_date
-                     FROM assigned_students a JOIN users u ON a.faculty_id = u.id
-                     ORDER BY a.assignment_date DESC, a.id DESC''')
-        reports = c.fetchall()
+                       FROM assigned_students a JOIN users u ON a.faculty_id = u.id
+                       ORDER BY a.assignment_date DESC, a.id DESC''')
+        reports_data = c.fetchall()
     
     conn.close()
-    return render_template('adminpanel.html', reports=reports, faculty_list=faculty_list, selected_user=faculty_filter, username=session['username'])
+
+    # Add S.No. to the data for rendering
+    reports_with_sno = []
+    for i, row in enumerate(reports_data):
+        reports_with_sno.append((i + 1,) + row) # Prepend S.No. (starts from 1)
+
+    return render_template('adminpanel.html', reports=reports_with_sno, faculty_list=faculty_list, selected_user=faculty_filter, username=session['username'])
 
 @app.route('/assign_students', methods=['GET', 'POST'])
 def assign_students():
@@ -269,9 +279,9 @@ def assign_students():
                 address = str(row.get('Address', '') or '').strip()
 
                 c.execute('''INSERT INTO assigned_students 
-                            (faculty_id, student, phone_number, hall_ticket_no, rank, exam_type, address, assignment_date)
-                            VALUES (?, ?, ?, ?, ?, ?, ?, ?)''',
-                            (faculty_id, student, phone_number, hall_ticket_no, rank, exam_type, address, current_timestamp))
+                                (faculty_id, student, phone_number, hall_ticket_no, rank, exam_type, address, assignment_date)
+                                VALUES (?, ?, ?, ?, ?, ?, ?, ?)''',
+                                (faculty_id, student, phone_number, hall_ticket_no, rank, exam_type, address, current_timestamp))
                 rows_inserted += 1
             conn.commit()
             flash(f'{rows_inserted} students assigned successfully to faculty!', 'success')
@@ -306,7 +316,12 @@ def export_excel():
         flash('No assigned student data to export.', 'info')
         return redirect('/adminpanel')
 
-    df = pd.DataFrame(data, columns=["Faculty", "Student", "Phone Number", "Hall Ticket No", "Rank", "Exam Type", "Status", "Notes", "Address", "Call Date", "Assignment Date"])
+    # Prepare data for DataFrame with S.No.
+    data_with_sno = []
+    for i, row in enumerate(data):
+        data_with_sno.append((i + 1,) + row) # Prepend S.No. (starts from 1)
+
+    df = pd.DataFrame(data_with_sno, columns=["S.No.", "Faculty", "Student", "Phone Number", "Hall Ticket No", "Rank", "Exam Type", "Status", "Notes", "Address", "Call Date", "Assignment Date"])
     file_path = 'all_assigned_students_report.xlsx'
     df.to_excel(file_path, index=False)
     return send_file(file_path, as_attachment=True)
@@ -329,7 +344,12 @@ def export_assigned_excel():
         flash('No assigned students data to export for you.', 'info')
         return redirect('/dashboard')
 
-    df = pd.DataFrame(data, columns=["Student", "Phone Number", "Hall Ticket No", "Rank", "Exam Type", "Status", "Notes", "Address", "Call Date", "Assignment Date"])
+    # Prepare data for DataFrame with S.No.
+    data_with_sno = []
+    for i, row in enumerate(data):
+        data_with_sno.append((i + 1,) + row) # Prepend S.No. (starts from 1)
+
+    df = pd.DataFrame(data_with_sno, columns=["S.No.", "Student", "Phone Number", "Hall Ticket No", "Rank", "Exam Type", "Status", "Notes", "Address", "Call Date", "Assignment Date"])
     file_path = f"{session['username']}_assigned_students_report.xlsx"
     df.to_excel(file_path, index=False)
     return send_file(file_path, as_attachment=True)
@@ -343,9 +363,6 @@ def logout():
 if __name__ == '__main__':
     init_db()
     app.run(debug=True)
-
-
-
 
 
 

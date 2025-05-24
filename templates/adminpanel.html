@@ -9,37 +9,38 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #e2e8f0; /* Slightly darker light gray background */
+            background-color: #e2e8f0; /* Consistent background */
             min-height: 100vh;
             display: flex;
-            justify-content: center;
-            padding: 1.5rem; /* Increased padding */
+            flex-direction: column;
+            align-items: center;
+            padding: 1.5rem;
         }
         /* Custom scrollbar for the table container */
         .table-container::-webkit-scrollbar {
             height: 8px;
+            width: 8px;
         }
         .table-container::-webkit-scrollbar-track {
             background: #f1f1f1;
             border-radius: 10px;
         }
         .table-container::-webkit-scrollbar-thumb {
-            background: #888;
+            background: #a0aec0; /* Gray-400 */
             border-radius: 10px;
         }
         .table-container::-webkit-scrollbar-thumb:hover {
-            background: #555;
+            background: #718096; /* Gray-600 */
         }
-
         /* Print-specific styles */
         @media print {
             body {
-                background-color: #fff; /* White background for printing */
+                background-color: #fff;
                 padding: 0;
                 margin: 0;
             }
             .no-print {
-                display: none !important; /* Hide elements not needed for print */
+                display: none !important;
             }
             .bg-white, .shadow-2xl, .border, .rounded-xl {
                 box-shadow: none !important;
@@ -48,29 +49,54 @@
                 padding: 0 !important;
             }
             h1, h3 {
-                color: #000 !important; /* Ensure black text for headers */
+                color: #000 !important;
             }
             table {
-                width: 100%;
+                width: 100% !important;
+                table-layout: auto !important;
                 border-collapse: collapse;
             }
             th, td {
-                border: 1px solid #ccc; /* Add borders to table cells for print */
+                border: 1px solid #ccc;
                 padding: 8px;
                 text-align: left;
-                font-size: 10px; /* Smaller font for print */
+                font-size: 9px;
+                white-space: normal !important;
+                word-wrap: break-word;
+                overflow: visible !important;
+                max-width: none !important;
             }
             .table-container {
-                overflow: visible !important; /* Allow table to expand */
+                overflow: visible !important;
             }
         }
     </style>
 </head>
 <body class="flex flex-col items-center">
+    <nav class="w-full bg-gradient-to-r from-gray-900 to-gray-700 p-4 shadow-lg no-print">
+        <div class="container mx-auto flex flex-col sm:flex-row justify-between items-center">
+            <a class="text-white text-2xl font-extrabold mb-2 sm:mb-0 tracking-wide hover:text-blue-300 transition duration-300 whitespace-nowrap" href="/adminpanel">Call Management System</a>
+            <ul class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-6 items-center">
+                <li class="text-gray-100 text-lg">Welcome, <span class="font-bold text-blue-300">{{ username | capitalize }}</span></li>
+                <li><a href="/adminpanel" class="px-3 py-2 rounded-md text-gray-200 hover:bg-gray-700 hover:text-white transition duration-300 font-medium">Admin Panel</a></li>
+                <li><a href="/register" class="px-3 py-2 rounded-md text-gray-200 hover:bg-gray-700 hover:text-white transition duration-300 font-medium">Register Faculty</a></li>
+                <li><a href="/admin_change_password" class="px-3 py-2 rounded-md text-gray-200 hover:bg-gray-700 hover:text-white transition duration-300 font-medium">Change Admin Password</a></li> {# ADDED THIS LINE #}
+                <li><a href="/logout" class="px-3 py-2 rounded-md bg-red-600 text-white font-semibold hover:bg-red-700 transition duration-300 shadow-md">Logout</a></li>
+            </ul>
+        </div>
+    </nav>
+
     <div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-6xl mt-8 border border-gray-100">
         <div class="flex flex-col sm:flex-row justify-between items-center mb-8 pb-4 border-b border-gray-200 no-print">
-            <h1 class="text-4xl font-extrabold text-gray-900 mb-4 sm:mb-0">Welcome, <span class="text-blue-700">{{ username }}</span> (Admin)</h1>
-            <a href="/logout" class="px-6 py-2 bg-red-500 text-white font-semibold rounded-lg shadow-md hover:bg-red-600 transition duration-300 ease-in-out transform hover:scale-105">Logout</a>
+            <h1 class="text-4xl font-extrabold text-gray-900 mb-4 sm:mb-0">Admin Panel Overview</h1>
+            <div class="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4">
+                <a href="/register" class="inline-flex items-center justify-center px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105">
+                    Register New Faculty
+                </a>
+                <a href="/assign_students" class="inline-flex items-center justify-center px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 transition duration-300 ease-in-out transform hover:scale-105">
+                    Assign Students to Faculty
+                </a>
+            </div>
         </div>
 
         {% with messages = get_flashed_messages(with_categories=true) %}
@@ -86,98 +112,72 @@
             {% endif %}
         {% endwith %}
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10 no-print">
-            <div class="bg-blue-50 p-8 rounded-xl shadow-lg border border-blue-100 flex flex-col items-center justify-center text-center transform hover:scale-102 transition duration-300 ease-in-out">
-                <h3 class="text-2xl font-bold text-gray-800 mb-4">Assign Students to Faculty</h3>
-                
-                <a href="/assign_students"
-                   class="inline-flex items-center justify-center px-8 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-bold rounded-lg shadow-md hover:from-blue-700 hover:to-cyan-700 focus:outline-none focus:ring-4 focus:ring-blue-300 transition duration-300 ease-in-out transform hover:scale-105">
-                    Go to Assign Students Page
+        <h3 class="text-3xl font-bold text-gray-800 mb-6 text-center">Assigned Students Report</h3>
+
+        <div class="mb-8 flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0 sm:space-x-4 no-print">
+            <form method="GET" class="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-2 w-full sm:w-auto">
+                <label for="faculty_filter" class="text-gray-700 font-medium">Filter by Faculty:</label>
+                <select name="faculty" id="faculty_filter" class="block w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-base bg-white">
+                    <option value="">All Faculty</option>
+                    {% for faculty_id, faculty_username in faculty_list %}
+                        <option value="{{ faculty_id }}" {% if selected_user and selected_user|int == faculty_id %}selected{% endif %}>{{ faculty_username }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="px-6 py-2 bg-blue-500 text-white font-semibold rounded-lg shadow-md hover:bg-blue-600 transition duration-300 ease-in-out transform hover:scale-105">Filter</button>
+            </form>
+            <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
+                <a href="{{ url_for('export_excel') }}"
+                   class="inline-flex items-center justify-center px-8 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold rounded-lg shadow-lg hover:from-purple-700 hover:to-indigo-700 focus:outline-none focus:ring-4 focus:ring-purple-300 transition duration-300 ease-in-out transform hover:scale-105">
+                    Download Full Report (Excel)
                 </a>
-            </div>
-
-            <div class="bg-green-50 p-8 rounded-xl shadow-lg border border-green-100 flex flex-col items-center justify-center text-center transform hover:scale-102 transition duration-300 ease-in-out">
-                <h3 class="text-2xl font-bold text-gray-800 mb-4">Register New Faculty</h3>
-               
-                <a href="/register"
-                   class="inline-flex items-center justify-center px-8 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-bold rounded-lg shadow-md hover:from-green-700 hover:to-emerald-700 focus:outline-none focus:ring-4 focus:ring-green-300 transition duration-300 ease-in-out transform hover:scale-105">
-                    Register Faculty
-                </a>
-            </div>
-        </div>
-
-        <hr class="my-10 border-t-2 border-gray-200 no-print"/>
-
-        <h3 class="text-3xl font-bold text-gray-800 mb-8 text-center">Assigned Students Report</h3>
-
-        <form method="get" action="{{ url_for('adminpanel') }}" class="mb-8 flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-4 p-4 bg-gray-50 rounded-lg shadow-inner no-print">
-            <label for="faculty" class="text-lg font-medium text-gray-700 whitespace-nowrap">Filter by Faculty:</label>
-            <select name="faculty" onchange="this.form.submit()"
-                    class="block w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-base bg-white">
-                <option value="">-- Show All Faculty --</option>
-                {% for f in faculty_list %}
-                    <option value="{{ f[0] }}" {% if selected_user and selected_user|string == f[0]|string %}selected{% endif %}>
-                        {{ f[1] }}
-                    </option>
-                {% endfor %}
-            </select>
-            {% if selected_user %}
-                <a href="{{ url_for('adminpanel') }}" class="text-blue-600 hover:text-blue-800 text-sm font-medium mt-2 sm:mt-0 px-3 py-1 rounded-md bg-blue-100 hover:bg-blue-200 transition duration-150 ease-in-out">Clear Filter</a>
-            {% endif %}
-        </form>
-
-        {% if reports %}
-            <div class="mb-8 text-center no-print">
                 <button onclick="window.print()"
                         class="inline-flex items-center justify-center px-8 py-3 bg-gradient-to-r from-gray-600 to-gray-800 text-white font-bold rounded-lg shadow-lg hover:from-gray-700 hover:to-gray-900 focus:outline-none focus:ring-4 focus:ring-gray-300 transition duration-300 ease-in-out transform hover:scale-105">
                     Print Report
                 </button>
-                <a href="{{ url_for('export_excel') }}"
-                   class="inline-flex items-center justify-center px-8 py-3 ml-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold rounded-lg shadow-lg hover:from-purple-700 hover:to-indigo-700 focus:outline-none focus:ring-4 focus:ring-purple-300 transition duration-300 ease-in-out transform hover:scale-105">
-                    Download Full Report (Excel)
-                </a>
             </div>
+        </div>
 
+        {% if reports %}
             <div class="overflow-x-auto rounded-lg shadow-lg border border-gray-200 table-container">
                 <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-100">
+                    <thead class="bg-gradient-to-r from-gray-100 to-gray-200">
                         <tr>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">S.No.</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Faculty</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Student</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Phone Number</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Hall Ticket No</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Rank</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Exam Type</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Address</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Assignment Date</th> {# New column header #}
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Notes</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Call Date</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider rounded-tl-lg">S.No.</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Faculty</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Student</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Phone Number</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Hall Ticket No</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Rank</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Exam Type</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Address</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Assignment Date</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Status</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Notes</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider rounded-tr-lg">Call Date</th>
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
                         {% for r in reports %}
-                        <tr class="hover:bg-blue-50 even:bg-gray-50">
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ r[0] }}</td> {# S.No. #}
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ r[1] }}</td> {# Faculty Username #}
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ r[2] }}</td> {# Student #}
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ r[3] }}</td> {# Phone Number #}
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ r[4] }}</td> {# Hall Ticket No #}
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ r[5] }}</td> {# Rank #}
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ r[6] }}</td> {# Exam Type #}
-                            <td class="px-6 py-4 text-sm text-gray-700 max-w-xs truncate">{{ r[9] or '' }}</td> {# Address #} {# Index shifted from 8 to 9 #}
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ (r[11] | default('')).split(' ')[0] }}</td> {# Assignment Date (r[11]) #} {# Index shifted from 10 to 11 #}
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ r[7] or '' }}</td> {# Status #} {# Index shifted from 6 to 7 #}
-                            <td class="px-6 py-4 text-sm text-gray-700">{{ r[8] or '' }}</td> {# Notes #} {# Index shifted from 7 to 8 #}
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ r[10] or '' }}</td> {# Call Date #} {# Index shifted from 9 to 10 #}
-                        </tr>
+                            <tr class="hover:bg-blue-50 even:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ r[0] }}</td> {# S.No. #}
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ r[1] }}</td> {# Faculty Username #}
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ r[2] }}</td> {# Student #}
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ r[3] }}</td> {# Phone Number #}
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ r[4] }}</td> {# Hall Ticket No #}
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ r[5] }}</td> {# Rank #}
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ r[6] }}</td> {# Exam Type #}
+                                <td class="px-6 py-4 text-sm text-gray-700 max-w-xs truncate">{{ r[9] }}</td> {# Address #}
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ (r[11] | default('')).split(' ')[0] }}</td> {# Assignment Date #}
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ r[7] }}</td> {# Status #}
+                                <td class="px-6 py-4 text-sm text-gray-700">{{ r[8] }}</td> {# Notes #}
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ r[10] }}</td> {# Call Date #}
+                            </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
         {% else %}
-            <p class="text-center text-gray-600 text-lg mt-8 p-4 bg-gray-100 rounded-lg shadow-inner">No assigned student data available for the selected faculty or overall.</p>
+            <p class="text-center text-gray-600 text-lg mt-8 p-4 bg-gray-100 rounded-lg shadow-inner">No assigned student data available.</p>
         {% endif %}
     </div>
 </body>

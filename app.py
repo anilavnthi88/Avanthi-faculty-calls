@@ -4,6 +4,7 @@ import os
 import pandas as pd
 import openpyxl # Needed for reading/writing .xlsx files
 from datetime import datetime # Import datetime for explicit timestamping
+import json # Import json for handling bulk student IDs
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key_here_a_long_random_string' # IMPORTANT: Change this to a strong, random key for production!
@@ -99,8 +100,9 @@ def login():
 
 @app.route('/register', methods=['GET', 'POST'])
 def register_faculty():
+    # Only an admin can register faculty
     if 'user_id' not in session or session.get('is_admin') != 1:
-        flash('Unauthorized access.', 'danger')
+        flash('Unauthorized access. Only administrators can register faculty.', 'danger')
         return redirect('/')
 
     if request.method == 'POST':
@@ -128,6 +130,10 @@ def register_faculty():
 
 @app.route('/register/admin', methods=['GET', 'POST'])
 def register_admin():
+    # Removed security restriction: Anyone can now register a new admin
+    # This was done based on a previous user request.
+    # For production, it's highly recommended to re-enable this check.
+
     if request.method == 'POST':
         username = request.form['username'].strip()
         password = request.form['password'].strip()
@@ -144,6 +150,7 @@ def register_admin():
                       (username, password, is_admin))
             conn.commit()
             flash(f'Admin "{username}" registered successfully!', 'success')
+            # Redirect to login page after successful registration
             return redirect('/')
         except sqlite3.IntegrityError:
             flash(f'Username "{username}" already exists. Please choose a different one.', 'danger')
@@ -161,34 +168,170 @@ def dashboard():
     c = conn.cursor()
 
     if request.method == "POST":
-        student_id = request.form.get('student_id')
-        status = request.form.get('status')
-        notes = request.form.get('notes')
-        call_date = request.form.get('call_date')
+        # Check if it's a bulk update submission
+        bulk_student_ids_json = request.form.get('bulk_student_ids')
+        
+        if bulk_student_ids_json:
+            try:
+                # Parse the JSON string back to a list of IDs
+                selected_ids = json.loads(bulk_student_ids_json)
+                bulk_status = request.form.get('bulk_status')
+                bulk_notes = request.form.get('bulk_notes')
+                bulk_call_date = request.form.get('bulk_call_date')
 
-        if student_id:
-            c.execute('''UPDATE assigned_students 
-                         SET status=?, notes=?, call_date=?
-                         WHERE id=? AND faculty_id=?''',
-                      (status, notes, call_date, student_id, session['user_id']))
-            conn.commit()
-            flash('Student record updated successfully!', 'success')
+                if not selected_ids:
+                    flash('No students selected for bulk update.', 'danger')
+                else:
+                    updated_count = 0
+                    for student_id in selected_ids:
+                        # Only update fields that are provided in the bulk form
+                        update_parts = []
+                        update_values = []
+
+                        if bulk_status:
+                            update_parts.append('status=?')
+                            update_values.append(bulk_status)
+                        if bulk_notes:
+                            update_parts.append('notes=?')
+                            update_values.append(bulk_notes)
+                        if bulk_call_date:
+                            update_parts.append('call_date=?')
+                            update_values.append(bulk_call_date)
+                        
+                        if update_parts: # Only proceed if there's something to update
+                            update_query = f"UPDATE assigned_students SET {', '.join(update_parts)} WHERE id=? AND faculty_id=?"
+                            update_values.extend([student_id, session['user_id']])
+                            c.execute(update_query, tuple(update_values))
+                            updated_count += 1
+                    conn.commit()
+                    flash(f'{updated_count} student records updated successfully in bulk!', 'success')
+            except json.JSONDecodeError:
+                flash('Error processing bulk update: Invalid student IDs format.', 'danger')
+            except Exception as e:
+                conn.rollback()
+                flash(f'An error occurred during bulk update: {e}', 'danger')
+                print(f"Bulk update error: {e}")
         else:
-            flash('Error: Student ID not provided for update.', 'danger')
+            # Existing individual update logic (if no bulk_student_ids are present)
+            student_id = request.form.get('student_id')
+            status = request.form.get('status')
+            notes = request.form.get('notes')
+            call_date = request.form.get('call_date')
 
+            if student_id:
+                c.execute('''UPDATE assigned_students 
+                                 SET status=?, notes=?, call_date=?
+                                 WHERE id=? AND faculty_id=?''',
+                              (status, notes, call_date, student_id, session['user_id']))
+                conn.commit()
+                flash('Student record updated successfully!', 'success')
+            else:
+                flash('Error: Student ID not provided for update.', 'danger')
+
+    # Fetch data for display
     c.execute('''SELECT id, student, phone_number, hall_ticket_no, rank, exam_type, address, status, notes, call_date, assignment_date
                  FROM assigned_students WHERE faculty_id=? ORDER BY assignment_date DESC, id DESC''',
               (session['user_id'],))
-    assigned_data = c.fetchall() # Renamed to avoid conflict with 'assigned' below
+    assigned_data = c.fetchall()
     conn.close()
 
     # Add S.No. to the data for rendering
-    # Each item in assigned_data is a tuple. We convert it to a list to prepend S.No.
     assigned_with_sno = []
     for i, row in enumerate(assigned_data):
-        assigned_with_sno.append((i + 1,) + row) # Prepend S.No. (starts from 1)
+        assigned_with_sno.append((i + 1,) + row)
 
     return render_template('dashboard.html', username=session['username'], assigned=assigned_with_sno)
+
+@app.route('/change_password', methods=['GET', 'POST'])
+def change_password():
+    if 'user_id' not in session:
+        flash('Please log in to change your password.', 'warning')
+        return redirect('/')
+
+    # This route is specifically for faculty, admins will use /admin_change_password
+    if session.get('is_admin') == 1:
+        flash('Administrators use the "Change Admin Password" link in the Admin Panel.', 'info')
+        return redirect('/adminpanel')
+
+    conn = get_db()
+    c = conn.cursor()
+
+    if request.method == 'POST':
+        current_password = request.form.get('current_password', '').strip()
+        new_password = request.form.get('new_password', '').strip()
+        confirm_password = request.form.get('confirm_password', '').strip()
+
+        # Fetch the user's current password from the database
+        c.execute('SELECT password FROM users WHERE id=?', (session['user_id'],))
+        user_db_password_tuple = c.fetchone()
+        user_db_password = user_db_password_tuple[0] if user_db_password_tuple else None
+
+        if not current_password or not new_password or not confirm_password:
+            flash('All fields are required.', 'danger')
+        elif user_db_password is None or current_password != user_db_password:
+            flash('Current password incorrect.', 'danger')
+        elif new_password != confirm_password:
+            flash('New password and confirm password do not match.', 'danger')
+        elif len(new_password) < 6: # Basic password strength check
+            flash('New password must be at least 6 characters long.', 'danger')
+        else:
+            try:
+                c.execute('UPDATE users SET password=? WHERE id=?', (new_password, session['user_id']))
+                conn.commit()
+                flash('Your password has been changed successfully!', 'success')
+                conn.close()
+                return redirect('/dashboard')
+            except Exception as e:
+                flash(f'An error occurred while changing password: {e}', 'danger')
+                print(f"Password change error: {e}")
+        conn.close()
+        return render_template('change_password.html', username=session['username'])
+
+    conn.close()
+    return render_template('change_password.html', username=session['username'])
+
+@app.route('/admin_change_password', methods=['GET', 'POST'])
+def admin_change_password():
+    if 'user_id' not in session or session.get('is_admin') != 1:
+        flash('Unauthorized access. Only administrators can change admin passwords.', 'danger')
+        return redirect('/')
+
+    conn = get_db()
+    c = conn.cursor()
+
+    if request.method == 'POST':
+        current_password = request.form.get('current_password', '').strip()
+        new_password = request.form.get('new_password', '').strip()
+        confirm_password = request.form.get('confirm_password', '').strip()
+
+        # Fetch the admin's current password from the database
+        c.execute('SELECT password FROM users WHERE id=?', (session['user_id'],))
+        user_db_password_tuple = c.fetchone()
+        user_db_password = user_db_password_tuple[0] if user_db_password_tuple else None
+
+        if not current_password or not new_password or not confirm_password:
+            flash('All fields are required.', 'danger')
+        elif user_db_password is None or current_password != user_db_password:
+            flash('Current password incorrect.', 'danger')
+        elif new_password != confirm_password:
+            flash('New password and confirm password do not match.', 'danger')
+        elif len(new_password) < 6: # Basic password strength check
+            flash('New password must be at least 6 characters long.', 'danger')
+        else:
+            try:
+                c.execute('UPDATE users SET password=? WHERE id=?', (new_password, session['user_id']))
+                conn.commit()
+                flash('Your admin password has been changed successfully!', 'success')
+                conn.close()
+                return redirect('/adminpanel') # Redirect back to admin panel
+            except Exception as e:
+                flash(f'An error occurred while changing password: {e}', 'danger')
+                print(f"Admin password change error: {e}")
+        conn.close()
+        return render_template('admin_change_password.html', username=session['username'])
+
+    conn.close()
+    return render_template('admin_change_password.html', username=session['username'])
 
 
 @app.route('/adminpanel', methods=['GET'])
@@ -205,7 +348,7 @@ def adminpanel():
     
     faculty_filter = request.args.get('faculty', '')
 
-    reports_data = [] # Renamed to avoid conflict with 'reports' below
+    reports_data = []
     if faculty_filter:
         c.execute('''SELECT u.username, a.student, a.phone_number, a.hall_ticket_no, a.rank, a.exam_type, 
                             a.status, a.notes, a.address, a.call_date, a.assignment_date
@@ -224,7 +367,7 @@ def adminpanel():
     # Add S.No. to the data for rendering
     reports_with_sno = []
     for i, row in enumerate(reports_data):
-        reports_with_sno.append((i + 1,) + row) # Prepend S.No. (starts from 1)
+        reports_with_sno.append((i + 1,) + row)
 
     return render_template('adminpanel.html', reports=reports_with_sno, faculty_list=faculty_list, selected_user=faculty_filter, username=session['username'])
 
@@ -279,9 +422,9 @@ def assign_students():
                 address = str(row.get('Address', '') or '').strip()
 
                 c.execute('''INSERT INTO assigned_students 
-                                (faculty_id, student, phone_number, hall_ticket_no, rank, exam_type, address, assignment_date)
-                                VALUES (?, ?, ?, ?, ?, ?, ?, ?)''',
-                                (faculty_id, student, phone_number, hall_ticket_no, rank, exam_type, address, current_timestamp))
+                                 (faculty_id, student, phone_number, hall_ticket_no, rank, exam_type, address, assignment_date)
+                                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)''',
+                                 (faculty_id, student, phone_number, hall_ticket_no, rank, exam_type, address, current_timestamp))
                 rows_inserted += 1
             conn.commit()
             flash(f'{rows_inserted} students assigned successfully to faculty!', 'success')
@@ -363,17 +506,6 @@ def logout():
 if __name__ == '__main__':
     init_db()
     app.run(debug=True)
-
-
-
-
-
-
-
-
-
-
-
 
 
 

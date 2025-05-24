@@ -12,27 +12,40 @@
             background-color: #e2e8f0; /* Slightly darker light gray background */
             min-height: 100vh;
             display: flex;
-            justify-content: center;
+            flex-direction: column; /* Allow content to stack vertically */
+            align-items: center;
             padding: 1.5rem; /* Increased padding */
         }
         /* Custom scrollbar for the table container */
         .table-container::-webkit-scrollbar {
             height: 8px;
+            width: 8px; /* Added for vertical scrollbar */
         }
         .table-container::-webkit-scrollbar-track {
             background: #f1f1f1;
             border-radius: 10px;
         }
         .table-container::-webkit-scrollbar-thumb {
-            background: #888;
+            background: #a0aec0; /* Gray-400 */
             border-radius: 10px;
         }
         .table-container::-webkit-scrollbar-thumb:hover {
-            background: #555;
+            background: #718096; /* Gray-600 */
         }
         /* Style for table rows to allow forms to span cells without breaking layout */
         .table-row-form {
             display: contents; /* Allows children to participate in grid/table layout of parent */
+        }
+
+        /* Enhanced table cell styling */
+        .table-cell-input {
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        .table-cell-input:focus {
+            outline: none;
+            border-color: #4299e1; /* Blue-500 */
+            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.5); /* Blue-500 with 50% opacity */
         }
 
         /* Print-specific styles */
@@ -97,10 +110,22 @@
     </style>
 </head>
 <body class="flex flex-col items-center">
+    <nav class="w-full bg-gradient-to-r from-gray-900 to-gray-700 p-4 shadow-lg no-print">
+        <div class="container mx-auto flex flex-col sm:flex-row justify-between items-center">
+            <a class="text-white text-2xl font-extrabold mb-2 sm:mb-0 tracking-wide hover:text-blue-300 transition duration-300 whitespace-nowrap" href="/dashboard">Call Management System</a>
+            <ul class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-6 items-center">
+                <li class="text-gray-100 text-lg">Welcome, <span class="font-bold text-blue-300">{{ username | capitalize }}</span></li>
+                <li><a href="/dashboard" class="px-3 py-2 rounded-md text-gray-200 hover:bg-gray-700 hover:text-white transition duration-300 font-medium">Dashboard</a></li>
+                <li><a href="/change_password" class="px-3 py-2 rounded-md text-gray-200 hover:bg-gray-700 hover:text-white transition duration-300 font-medium">Change Password</a></li>
+                <li><a href="/export_assigned_excel" class="px-3 py-2 rounded-md text-gray-200 hover:bg-gray-700 hover:text-white transition duration-300 font-medium">Export My Data</a></li>
+                <li><a href="/logout" class="px-3 py-2 rounded-md bg-red-600 text-white font-semibold hover:bg-red-700 transition duration-300 shadow-md">Logout</a></li>
+            </ul>
+        </div>
+    </nav>
+
     <div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-6xl mt-8 border border-gray-100">
         <div class="flex flex-col sm:flex-row justify-between items-center mb-8 pb-4 border-b border-gray-200 no-print">
-            <h1 class="text-4xl font-extrabold text-gray-900 mb-4 sm:mb-0">Welcome, <span class="text-blue-700">{{ username | capitalize }}</span> (Faculty)</h1>
-            <a href="/logout" class="px-6 py-2 bg-red-500 text-white font-semibold rounded-lg shadow-md hover:bg-red-600 transition duration-300 ease-in-out transform hover:scale-105">Logout</a>
+            <h1 class="text-4xl font-extrabold text-gray-900 mb-4 sm:mb-0">Your Assigned Students</h1>
         </div>
 
         {% with messages = get_flashed_messages(with_categories=true) %}
@@ -116,41 +141,79 @@
             {% endif %}
         {% endwith %}
 
-        <h3 class="text-3xl font-bold text-gray-800 mb-8 text-center">Your Assigned Students</h3>
-
         {% if assigned %}
-            <div class="mb-8 text-center no-print">
+            <div class="mb-8 flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4 no-print">
                 <a href="{{ url_for('export_assigned_excel') }}"
                    class="inline-flex items-center justify-center px-8 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold rounded-lg shadow-lg hover:from-purple-700 hover:to-indigo-700 focus:outline-none focus:ring-4 focus:ring-purple-300 transition duration-300 ease-in-out transform hover:scale-105">
                     Download My Assigned Students Report (Excel)
                 </a>
                 <button onclick="window.print()"
-                        class="inline-flex items-center justify-center px-8 py-3 ml-4 bg-gradient-to-r from-gray-600 to-gray-800 text-white font-bold rounded-lg shadow-lg hover:from-gray-700 hover:to-gray-900 focus:outline-none focus:ring-4 focus:ring-gray-300 transition duration-300 ease-in-out transform hover:scale-105">
+                        class="inline-flex items-center justify-center px-8 py-3 bg-gradient-to-r from-gray-600 to-gray-800 text-white font-bold rounded-lg shadow-lg hover:from-gray-700 hover:to-gray-900 focus:outline-none focus:ring-4 focus:ring-gray-300 transition duration-300 ease-in-out transform hover:scale-105">
                     Print Report
                 </button>
             </div>
 
+            <div class="bg-gray-50 p-6 rounded-lg shadow-inner mb-8 no-print">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">Bulk Update Selected Students</h3>
+                <form id="bulkUpdateForm" action="/dashboard" method="POST" class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                    <input type="hidden" name="bulk_student_ids" id="bulk_student_ids">
+
+                    <div>
+                        <label for="bulk_status" class="block text-sm font-medium text-gray-700">Status:</label>
+                        <select name="bulk_status" id="bulk_status" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm bg-white">
+                            <option value="">-- Select Status --</option>
+                            <option value="Pending">Pending</option>
+                            <option value="Contacted">Contacted</option>
+                            <option value="Admitted">Admitted</option>
+                            <option value="Not Interested">Not Interested</option>
+                            <option value="Follow Up">Follow Up</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="bulk_notes" class="block text-sm font-medium text-gray-700">Notes:</label>
+                        <textarea name="bulk_notes" id="bulk_notes" rows="2" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm resize-y"></textarea>
+                    </div>
+
+                    <div>
+                        <label for="bulk_call_date" class="block text-sm font-medium text-gray-700">Call Date:</label>
+                        <input type="date" name="bulk_call_date" id="bulk_call_date" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm bg-white">
+                    </div>
+
+                    <div class="md:col-span-3 text-center">
+                        <button type="submit" class="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-bold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 transition duration-300 ease-in-out transform hover:scale-105">
+                            Apply Bulk Update
+                        </button>
+                    </div>
+                </form>
+            </div>
             <div class="overflow-x-auto rounded-lg shadow-lg border border-gray-200 table-container">
                 <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-100">
+                    <thead class="bg-gradient-to-r from-gray-100 to-gray-200">
                         <tr>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">S.No.</th> {# Added S.No. header #}
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Student</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Phone Number</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Hall Ticket No</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Rank</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Exam Type</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Address</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Assignment Date</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Notes</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Call Date</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider rounded-tl-lg">
+                                <input type="checkbox" id="selectAllStudents" class="form-checkbox h-4 w-4 text-blue-600 rounded focus:ring-blue-500">
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">S.No.</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Student</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Phone Number</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Hall Ticket No</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Rank</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Exam Type</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Address</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Assignment Date</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Status</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Notes</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Call Date</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider rounded-tr-lg">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
                         {% for s in assigned %}
                             <tr class="hover:bg-blue-50 even:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                    <input type="checkbox" name="selected_students" value="{{ s[1] }}" class="student-checkbox form-checkbox h-4 w-4 text-blue-600 rounded focus:ring-blue-500">
+                                </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ s[0] }}</td> {# S.No. (new index 0) #}
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ s[2] }}</td> {# Student (original index 1, now 2) #}
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ s[3] }}</td> {# Phone Number (original index 2, now 3) #}
@@ -169,7 +232,7 @@
                                 <form action="/dashboard" method="POST" class="table-row-form">
                                     <input type="hidden" name="student_id" value="{{ s[1] }}"> {# IMPORTANT: This is the actual DB 'id' (original index 0, now 1) #}
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                                        <select name="status" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm bg-white no-print">
+                                        <select name="status" class="table-cell-input block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm bg-white no-print">
                                             <option value="Pending" {% if s[8] == 'Pending' %}selected{% endif %}>Pending</option> {# Status (original index 7, now 8) #}
                                             <option value="Contacted" {% if s[8] == 'Contacted' %}selected{% endif %}>Contacted</option>
                                             <option value="Admitted" {% if s[8] == 'Admitted' %}selected{% endif %}>Admitted</option>
@@ -179,15 +242,15 @@
                                         <span class="print-only hidden">{{ s[8] or '' }}</span>
                                     </td>
                                     <td class="px-6 py-4 text-sm text-gray-700">
-                                        <textarea name="notes" rows="3" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm resize-y no-print">{{ s[9] or '' }}</textarea> {# Notes (original index 8, now 9) #}
+                                        <textarea name="notes" rows="3" class="table-cell-input block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm resize-y no-print">{{ s[9] or '' }}</textarea> {# Notes (original index 8, now 9) #}
                                         <span class="print-only hidden">{{ s[9] or '' }}</span>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                                        <input type="date" name="call_date" value="{{ s[10] or '' }}" class="date-input block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm bg-white no-print"> {# Call Date (original index 9, now 10) #}
+                                        <input type="date" name="call_date" value="{{ s[10] or '' }}" class="table-cell-input date-input block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm bg-white no-print"> {# Call Date (original index 9, now 10) #}
                                         <span class="print-only hidden print-only-date">{{ s[10] or '' }}</span>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out transform hover:scale-105 no-print">
+                                        <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-150 ease-in-out transform hover:scale-105 no-print">
                                             Update
                                         </button>
                                     </td>
@@ -250,10 +313,56 @@
                     }
                 }
             });
+
+            // --- Bulk Update JavaScript ---
+            const selectAllCheckbox = document.getElementById('selectAllStudents');
+            const studentCheckboxes = document.querySelectorAll('.student-checkbox');
+            const bulkStudentIdsInput = document.getElementById('bulk_student_ids');
+            const bulkUpdateForm = document.getElementById('bulkUpdateForm');
+
+            function updateBulkStudentIds() {
+                const selectedIds = Array.from(studentCheckboxes)
+                                        .filter(checkbox => checkbox.checked)
+                                        .map(checkbox => checkbox.value);
+                bulkStudentIdsInput.value = JSON.stringify(selectedIds); // Store as JSON string
+            }
+
+            selectAllCheckbox.addEventListener('change', function() {
+                studentCheckboxes.forEach(checkbox => {
+                    checkbox.checked = this.checked;
+                });
+                updateBulkStudentIds();
+            });
+
+            studentCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    if (!this.checked) {
+                        selectAllCheckbox.checked = false;
+                    } else {
+                        const allChecked = Array.from(studentCheckboxes).every(cb => cb.checked);
+                        selectAllCheckbox.checked = allChecked;
+                    }
+                    updateBulkStudentIds();
+                });
+            });
+
+            // Initial update when page loads
+            updateBulkStudentIds();
+
+            // Prevent individual update forms from submitting if bulk update is intended
+            // This is a safety measure, though the backend will handle the POST data
+            document.querySelectorAll('.table-row-form').forEach(form => {
+                form.addEventListener('submit', function(event) {
+                    // You can add logic here if you want to prevent individual updates
+                    // when bulk update fields are filled, but for now, both can coexist.
+                });
+            });
+            // --- End Bulk Update JavaScript ---
         });
     </script>
 </body>
 </html>
+
 
 
 
